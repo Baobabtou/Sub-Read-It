@@ -1,0 +1,10 @@
+###### Requirements ######
+
+numpy
+flask
+sklearn
+pandas
+lxml
+textblob
+wordcloud
+spacy
