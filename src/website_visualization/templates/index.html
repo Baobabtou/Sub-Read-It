@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<title>Sub-Read-It</title>
+	<meta charset="utf8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes"/>
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet"/>
+	<style>
+		:root {
+			--light: #92DE34;
+			--dark: #69BC22;
+			--text: #025600;
+		}
+		body,html{
+			margin:0;
+			padding:0;
+			width:100%;
+			height:100%;
+		}
+		*{
+			font-family:sans-serif;
+		}
+		h1{
+			margin:0;
+		}
+		header{
+			padding:15px;
+			color: var(--text);
+			background-color:var(--light);
+		}
+		section{
+			padding:20px;
+			text-align:center;
+			display:flex;
+			flex-direction:column;
+			align-items:center;
+		}
+		input{
+			display:block;
+		}
+		button {
+			display:block;
+			cursor: pointer;
+			outline: none;
+			border: none;
+			background-color: var(--light);
+			width: 400px;
+			height: 70px;
+			border-radius: 30px;
+			font-size: 1.5rem;
+			font-weight: 600;
+			color: var(--text);
+			margin-bottom: 15px;
+		}
+
+		button:hover {
+			box-shadow: 0 0 5px var(--dark) inset;
+		}
+		button:active{
+			transform:scale(.95);
+		}
+
+		.form__group {
+			position: relative;
+			padding: 15px;
+			width: 50%;
+			font-size: 18px;
+		}
+
+		.form__field {
+			font-size: 18px;
+			width: 100%;
+			border: 0;
+			border-bottom: 2px solid #9b9b9b;
+			outline: 0;
+			color: var(--text);
+			padding: 7px 0;
+			background: transparent;
+			transition: border-color 0.2s;
+		}
+		.form__field::placeholder {
+			color: transparent;
+		}
+		.form__field:placeholder-shown ~ .form__label {
+			cursor: text;
+			top: 20px;
+		}
+		.form__label {
+			z-index:-1;
+			position: absolute;
+			top: 0;
+			display: block;
+			transition: 0.2s;
+			color: var(--dark);
+			white-space:nowrap;
+		}
+
+		.form__field:focus {
+			padding-bottom: 6px;
+			border-width: 3px;
+			border-color: var(--dark);
+		}
+		.form__field:focus ~ .form__label {
+			position: absolute;
+			top: 0;
+			display: block;
+			transition: 0.2s;
+			color: var(--dark);
+		}
+
+		/* reset input */
+		.form__field:required, .form__field:invalid {
+			box-shadow: none;
+		}
+		#result_dom{
+			display:flex;
+			width:90%;
+			position:relative;
+		}
+		#result_dom > *{
+			width:33%;
+		}
+		h2:first-child{
+			margin-top:-10px;
+		}
+		#result_dom > .load{
+			font-size:3vw;
+			width:100%;
+			text-align:center;
+		}
+		#result_dom > div{
+			padding:10px;
+			/*margin:10px;
+			border:1px solid #333;
+			border-radius:3px;*/
+		}
+		#main_block > div{
+			padding:5px;
+		}
+		#main_block{
+			border-left:1px solid black;
+			border-right:1px solid black;
+		}
+		#img_block > div{
+			padding:5px;
+		}
+		.label{
+			color:white;
+			padding:3px;
+			margin:3px;
+			border-radius:5px;
+		}
+		.label.green{
+			background-color:#0d0;
+		}
+		.label.yellow{
+			background-color:#dd0;	
+		}
+		.label.red{
+			background-color:#d00;	
+		}
+		.label.blue{
+			background-color:#00d;
+		}
+		#loading_ico{
+			font-size:3vw;
+		}
+	</style>
+</head>
+<body>
+	<header>
+		<h1>Sub-Read-It</h1>
+	</header>
+	<section>
+		<div class="form__group field">
+			<input type="input" class="form__field" placeholder="Nom de la subreddit à analyser" id='subreddit' required />
+			<label for="name" class="form__label">Nom de la subreddit à analyser</label>
+		</div>
+		<button id="go">Analyser la subreddit</button>
+		<div id="loading_ico"></div>
+		<div id="result_dom">
+			<div id="img_block">
+				<h2>Thèmes de la subreddit</h2>
+				<br/>
+				<img src='/imgs/img.png'/> <!-- ne pas toucher à cette url, elle est toujours correct. -->
+				<br/><br/>
+				<div>Cette subreddit parle principalement de : </div>
+				<br/>
+				<div id="categories"></div>
+				<br/>
+				<div id="names"></div>
+			</div>
+			<div id="main_block">
+				<h2>Rapport sur r/<span id='subname'>news</span></h2>
+				<div>Popularité de la subreddit : <span class='label yellow' id='popularité'> Moyennement populaire</span></div>
+				<div>Polarité du contenu : <span class='label green' id='polarité'>Pas polarisé</span></div>
+				<div>Subjectivité du contenu : <span class='label red' id='subjectivité'>Très subjectif</span></div>
+				<div>Risque de fake news : <span class='label yellow' id='fiabilité'>Un peu de fake news</span></div>
+				<h2>Les utilisateurs de la subreddit</h2>
+				<div>Les posts sont partagés en moyenne <span class='label yellow' id='partages'>1</span> fois</div>
+				<div style='font-style:italic'>Des études montrent que les fausses informations sont en général plus partagées que les vraies.</div>
+				<div>Le contenu est <span class='label yellow' id='débat'>beaucoup</span> controversé / débattu</div>
+				<div style='font-style:italic'>Un contenu très controversé peut-être le signe de la présence de fake news, mais aussi d'un débat tout-à-fait sain !</div>
+			</div>
+			<div id="emotion_block">
+				<h2>Emotions de la subreddit</h2>
+				<div>
+				La subreddit fait appel à vos émotions fortes : 
+					<br/><br/>
+					<span class='label yellow' id="emotion_strength">Moyennement</span>
+				</div>
+				<br/>
+				<div style='font-style:italic'>
+				Les fake news jouent sur les émotions fortes pour être plus sensationelles et se propager plus rapidement. Un indice émotionnel fort peut donc être le signe de la présence de fake news
+				</div>
+				<br/><br/>
+				<div>Les émotions principalement présentes sont : <br/></div>
+				<div id="emotions">
+					
+				</div>
+				<br/>
+				<div style='font-style:italic'>Les fake news jouent en particulier sur la peur et la colère !</div>
+			</div>
+		</div>
+	</section>
+	<script>
+		result_dom.style.display = 'none';
+
+		function get_website(url){
+			return new Promise( (resolve) => {
+				let httpRequest = new XMLHttpRequest();
+				httpRequest.onreadystatechange = () => {
+					if(httpRequest.readyState === XMLHttpRequest.DONE){
+						resolve(httpRequest.responseText);
+					}
+				};
+				httpRequest.open('GET', url, true);
+				httpRequest.send();
+			});
+		}
+
+		function preventXSS(text){
+			let cleaner = document.createElement('div');
+			cleaner.innerText = text;
+			return cleaner.innerHTML;
+		}
+
+		let data_example = {"polarity":1,"subjectivity":0,"popularity":0,"fake":2,"emotions":{"disgust":1.8714398303073998,"surprise":5.897850208972001,"neutral":0.9954057645609998,"anger":6.3620747848199946,"sad":5.633245408554999,"happy":7.095572101065499,"fear":6.283970783261999},"names":{"Zoom":7,"Denise":7},"categories":{"PERSON":49,"DATE":42}, "emotion_strength":"Beaucoup"};
+
+		
+		async function performAnalysis(){
+			let sr = subreddit.value;
+			if(sr.length > 0){
+				result_dom.style.display = 'none';
+				loading_ico.innerHTML = "<div class='load'>Analyse en cours ...</div><div class='load'><i class='fa fa-circle-notch fa-spin'></i></div>"
+				let color_labels = ["green","yellow","red"];
+				let polarity_labels = ["Positif","Neutre","Négatif"];
+				let subjectivity_labels = ["Objectif","Un peu subjectif","Subjectif"];
+				let popularity_labels = ["Très connue","Moyennement connue","Peu connue"];
+				let fake_labels = ["Faible","Moyen","Elevé"];
+
+
+				try{
+					let result = JSON.parse(await get_website("/q/" + sr));
+					let name = preventXSS(sr);
+					subname.innerHTML = name;
+					loading_ico.innerHTML = "";
+					result_dom.style.display = '';
+				
+					console.log(result); // result contains the data that needs to be displayed.
+
+					// display some more stuff.
+
+					// load image.
+					let rnd_number = Math.floor(Math.random() * 10000000); // generate random number to force image refresh.
+					document.getElementsByTagName('img')[0].src = "/imgs/img.png?"+rnd_number
+					
+					document.getElementById("polarité").innerHTML = polarity_labels[result["polarity"]];
+					polarité.className = "label "+ color_labels[result["polarity"]];
+					document.getElementById("subjectivité").innerHTML = subjectivity_labels[result["subjectivity"]];
+					subjectivité.className = "label "+ color_labels[result["subjectivity"]];
+					document.getElementById("popularité").innerHTML = popularity_labels[result["popularity"]];
+					popularité.className = "label "+ color_labels[result["popularity"]];
+					document.getElementById("fiabilité").innerHTML = fake_labels[result["fake"]];
+					fiabilité.className = "label "+ color_labels[result["fake"]];
+
+					document.getElementById("partages").innerHTML = result["crossposts"]; // à modifier
+					document.getElementById("débat").innerHTML = result["up_down"];
+
+					document.getElementById("emotion_strength").innerHTML = result["emotion_strength"];
+					emotion_strength.className = "label green";
+					if(result["emotion_strength"]=="Beaucoup"){
+						emotion_strength.className = "label red";
+					};
+					if(result["emotion_strength"]=="Moyennement"){
+						emotion_strength.className = "label yellow";
+					};
+
+					emotions.innerHTML = ''
+					for(let emotion in result["emotions"]){
+						this_emotion = document.createElement("span");
+						this_emotion.className = "label green";
+						if(emotion=="fear"||emotion=="anger"){
+							this_emotion.className = "label red";
+						};
+						if(emotion=="disgust"||emotion=="sad"||emotion=="surprise"){
+							this_emotion.className = "label yellow";
+						};
+						emotions.appendChild(this_emotion);
+						this_emotion.innerHTML = emotion
+					}
+
+					names.innerHTML = '';
+					for(let name in result["names"]){
+						this_name = document.createElement("span");
+						this_name.className = "label blue";
+						names.appendChild(this_name);
+						this_name.innerHTML = name
+					}
+
+					categories.innerHTML = '';
+					for(let category in result["categories"]){
+						this_category = document.createElement("span");
+						this_category.className = "label blue";
+						categories.appendChild(this_category);
+						this_category.innerHTML = category
+					}
+
+				}catch(err){
+					console.log(err)
+					result_dom.innerHTML = "<div>Ceci n'est pas une subreddit valide !</div>"					
+				}
+			}
+		}
+
+		subreddit.onkeydown = (e) => {
+			if(e.key === "Enter"){
+				performAnalysis();
+			}
+		};
+
+		go.onclick = (e) => {
+			performAnalysis();
+		};
+
+	</script>
+</body>
+</html>
